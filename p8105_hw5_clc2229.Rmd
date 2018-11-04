@@ -9,18 +9,26 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(rvest)
+
+set.seed(1)
 ```
 
 ### Problem 1
 
-The below code chunk
+The below code chunk reads in all of the data for each of the study participants and stores the data in a tidy way.
 
 ```{r}
-datafiles = tibble(
-  path = list.files("./hw5_data/data", full.names = TRUE),
-  data = map(datafiles$path, ~ read.csv(.x))
-) %>% 
-  unnest
+path = list.files("./hw5_data/data", full.names = TRUE)
+
+datafiles = 
+  tibble(
+  data = map(.x = path, ~read.csv(.x))
+  )
+
+datafiles %>%
+  unnest 
+
+
 
 
 

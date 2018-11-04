@@ -27,11 +27,17 @@ datafiles =
   data = map(.x = path, ~read.csv(.x))
   )
 
-datafiles %>%
+datafiles =
+  datafiles %>% 
   unnest %>% 
   mutate(arm = case_when(arm == TRUE ~ "Control",
                          arm == FALSE ~ "Experimental")
-  )
+  ) %>% 
+  gather(key = "week", week_1:week_8, value = "value") %>% 
+  mutate(week = str_extract(week, "\\d")) %>% 
+  arrange(arm, participant)
+
+datafiles
 
 ```
 

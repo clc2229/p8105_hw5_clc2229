@@ -34,11 +34,33 @@ datafiles =
                          arm == FALSE ~ "Experimental")
   ) %>% 
   gather(key = "week", week_1:week_8, value = "value") %>% 
-  mutate(week = str_extract(week, "\\d")) %>% 
+  mutate(week = as.numeric(str_extract(week, "\\d"))) %>% 
   arrange(arm, participant)
 
 datafiles
 
 ```
 
+The below code chunk creates a spaghetti plot of the observations on each subject over time by arm. 
 
+```{r}
+
+datafiles %>% 
+  ggplot(aes(x = week, y = value, color = participant)) +
+    geom_line() +
+    facet_grid(~arm) +
+    viridis::scale_color_viridis(
+      discrete = TRUE,
+      name = "Subject ID"
+    ) +
+    labs(
+      x = "Week",
+      y = "Value",
+      title = "Observations Over Time by Arm"
+    ) +
+    theme_bw()
+  
+
+```
+
+From this plot, we can see that the observed values for subjects in the experimental group tended to increase over time, while those for the control group were relatively constant over time.

@@ -15,15 +15,6 @@ set.seed(1)
 
 ### Problem 1
 
-The below code chunk creates a function to determine whether a datafile belongs to someone in the control arm or the experimental arm.
-
-```{r}
-is_control = function(x) {
-  
-  con = str_detect(x, "con")
-  
-}
-```
 
 The below code chunk reads in all of the data for each of the study participants and stores the data in a tidy way.
 ```{r}
@@ -31,7 +22,8 @@ path = list.files("./hw5_data/data", full.names = TRUE)
 
 datafiles = 
   tibble(
-  arm = map(path, is_control),
+  arm =  str_detect(path, "con"),
+  participant = str_extract(path, "\\d+(?=.csv)"),
   data = map(.x = path, ~read.csv(.x))
   )
 
@@ -40,11 +32,6 @@ datafiles %>%
   mutate(arm = case_when(arm == TRUE ~ "Control",
                          arm == FALSE ~ "Experimental")
   )
-
-```
-
-
-```{r}
 
 ```
 

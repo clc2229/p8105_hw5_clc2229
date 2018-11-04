@@ -110,9 +110,6 @@ homicides %>%
 
 The `homicides` dataset contains data related to homicides in major U.S. cities. The dataset reports information on each homicide across `r homicides %>% ncol()` columns and `r homicides %>% nrow()` rows. Variables include key pieces of information for each case, such as the victim's first name, last name, and age as well as the location of status of the case. For example, the first record in this dataset provides information on the homicide of `r homicides %>% select(victim_first) %>% head(1)` `r homicides %>% select(victim_last) %>% head(1)` who was `r homicides %>% select(victim_age) %>% head(1)` years old. He lived in `r homicides %>% select(city) %>% head(1)`, `r homicides %>% select(state) %>% head(1)`, and his case was "`r homicides %>% select(disposition) %>% head(1)`." Additionally, a preliminary analysis shows that the average age of all victims in this dataset was `r homicides %>% select(victim_age) %>% summarize(round(mean(as.numeric(victim_age)), digits = 0))`.
 
-
-### Problem 2
-
 The below code chunk creates a new variable, `city_state`, which concatenates the `city` and `state` variables. 
 
 ```{r}
@@ -129,7 +126,8 @@ total_homicides =
   homicides %>% 
   group_by(city_state) %>% 
   summarize(all_homicides = n(),
-            unsolved_homicides = sum(disposition == "Closed without arrest" | disposition == "Open/No arrest"))
+            unsolved_homicides = sum(disposition == "Closed without arrest" | 
+                                     disposition == "Open/No arrest"))
 
 ```
 
@@ -139,11 +137,9 @@ baltimore_homicides =
   total_homicides %>% 
   filter(city_state == "Baltimore, MD")
   
-baltimore_prop = prop.test(x = baltimore_homicides$unsolved_homicides,
-                           n = baltimore_homicides$all_homicides)
-  
-baltimore_prop =
-  baltimore_prop %>% 
+baltimore_prop = 
+  prop.test(x = baltimore_homicides$unsolved_homicides,
+            n = baltimore_homicides$all_homicides) %>% 
   broom::tidy() %>% 
   select(estimate, conf.low, conf.high)
 
@@ -155,3 +151,52 @@ baltimore_prop$conf.high
 ```
 
 Using the code chunk above, we can see that the estimated proportion of unsolved homicide cases in Baltimore, MD is `r baltimore_prop$estimate` and the 95% confidence interval for this estimate is (`r baltimore_prop$conf.low`, `r baltimore_prop$conf.high`).
+
+
+Here is a function that calculates the estimated proportion of unsolved homicides and its corresponding 95% confidence interval. 
+
+```{r}
+prop_unsolved = function(x, y) {
+
+   est_prop = 
+     prop.test(x = x, n = y) %>% 
+     broom::tidy() %>% 
+     select(estimate, conf.low, conf.high)
+}
+
+```
+
+The below code chunk applies the above function to the `total_homicides` dataframe and creates a tidy dataframe that includes the estimated proportion of unsolved homicides and 95% CIs for each city.
+
+```{r}
+final_homicides =
+  map2(.x = total_homicides$unsolved_homicides, 
+       .y = total_homicides$all_homicides, 
+       ~prop_unsolved(.x, .y)) %>% 
+  bind_rows() %>% 
+  bind_cols(total_homicides) %>% 
+  mutate(conf_low = conf.low,
+         conf_high = conf.high) %>% 
+  select(city_state, all_homicides, unsolved_homicides, estimate, conf_low, conf_high) 
+```
+
+The below code chunk creates a plot of the estimated proportion of unsolved homicides in each of the cities and error bars based on the 95% CIs. The points are arranged by decreasing proportion. It is also interesting to note that the observation for `Tulsa, AL` appears to be a mistake--with only one recorded homicide and a latitutde and longitude that align with the records for `Tulsa, OK`, this record should likely be combined with the records for `Tulsa, OK`.
+```{r}
+
+final_homicides %>% 
+  arrange(desc(estimate)) %>% 
+  mutate(city_state = forcats::fct_inorder(city_state)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf_low, ymax = conf_high)) +
+  labs(
+    x = "City & State",
+    y = "Estimated Proportion of Unsolved Homicides",
+    title = "Proportion of Unsolved Homicides in Major U.S. Cities"
+  ) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6)) 
+  
+```
+

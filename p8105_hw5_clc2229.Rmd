@@ -64,3 +64,48 @@ datafiles %>%
 ```
 
 From this plot, we can see that the observed values for subjects in the experimental group tended to increase over time, while those for the control group were relatively constant over time.
+
+### Problem 2
+
+The below code chunk reads in the data and describes the raw data. 
+
+```{r}
+homicides = read.csv("./hw5_data/homicide-data.csv")
+
+homicides %>%
+  nrow()
+
+homicides %>% 
+  ncol()
+
+homicides %>% 
+  select(victim_first) %>% 
+  head(1)
+
+homicides %>% 
+  select(victim_last) %>% 
+  head(1)
+
+homicides %>% 
+  select(victim_age) %>% 
+  head(1)
+
+homicides %>% 
+  select(city) %>% 
+  head(1)
+
+homicides %>% 
+  select(state) %>% 
+  head(1)
+
+homicides %>% 
+  select(disposition) %>% 
+  head(1)
+
+homicides %>% 
+  select(victim_age) %>% 
+  summarize(round(mean(as.numeric(victim_age)), digits = 0))
+
+```
+
+The `homicides` dataset contains data related to homicides in major U.S. cities. The dataset reports information on each homicide across `r homicides %>% ncol()` columns and `r homicides %>% nrow()` rows. Variables include key pieces of information for each case, such as the victim's first name, last name, and age as well as the location of status of the case. For example, the first record in this dataset provides information on the homicide of `r homicides %>% select(victim_first) %>% head(1)` `r homicides %>% select(victim_last) %>% head(1)` who was `r homicides %>% select(victim_age) %>% head(1)` years old. He lived in `r homicides %>% select(city) %>% head(1)`, `r homicides %>% select(state) %>% head(1)`, and his case was "`r homicides %>% select(disposition) %>% head(1)`." Additionally, a preliminary analysis shows that the average age of all victims in this dataset was `r homicides %>% select(victim_age) %>% summarize(round(mean(as.numeric(victim_age)), digits = 0))`.

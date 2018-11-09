@@ -161,6 +161,7 @@ prop_unsolved = function(x, y) {
      prop.test(x = x, n = y) %>% 
      broom::tidy() %>% 
      select(estimate, conf.low, conf.high)
+  
 }
 
 ```
